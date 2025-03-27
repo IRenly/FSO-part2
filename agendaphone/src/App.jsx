@@ -43,6 +43,19 @@ const App = () => {
       number: newNumber,
     }
 
+    const handleDeletePerson = (id) => {
+      const personToDelete = persons.find(person => person.id === id);
+      if (window.confirm(`Delete ${personToDelete.name}?`)) {
+        deletePerson(id)
+          .then(() => {
+            setPersons(persons.filter(person => person.id !== id));
+          })
+          .catch(error => {
+            console.error('Error deleting person:', error);
+          });
+      }
+    };
+
     addPersons(nameObject)
       .then(returnedPerson => {
         setPersons(persons.concat(returnedPerson))
@@ -60,8 +73,8 @@ const App = () => {
       )
     : persons
 
-  return (
-    <div>
+    return (
+      <div>
       <h2>Phonebook</h2>
       <div>filter shown with <input value={newFilter} onChange={handleFilterChange} /></div>
       <PersonForm
@@ -72,9 +85,24 @@ const App = () => {
         handleNumberChange={handleNumberChange}
       />
       <h2>Numbers</h2>
-      <Persons personsToShow={personsToShow} />
-    </div>
-  )
+      <Persons 
+        personsToShow={personsToShow} 
+        handleDelete={(id) => {
+        const personToDelete = persons.find(person => person.id === id);
+        if (window.confirm(`Delete ${personToDelete.name}?`)) {
+          deletePerson(id)
+          .then(() => {
+            setPersons(persons.filter(person => person.id !== id));
+          })
+          .catch(error => {
+            console.error('Error deleting person:', error);
+          });
+        }
+        }} 
+      />
+      </div>
+    )
 }
 
 export default App
+
