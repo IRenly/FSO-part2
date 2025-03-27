@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
-import axios from 'axios'
-
+import { getPersons, addPersons, deletePerson, updatePerson } from './services/persons'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -12,58 +11,65 @@ const App = () => {
   const [newFilter, setNewFilter] = useState('')
 
   useEffect(() => {
-    console.log('effect')
-    axios.get('http://localhost:3001/persons').then((response) => {
-      console.log('promise fulfilled')
-      setPersons(response.data)
+    getPersons().then((initialPersons) => {
+      setPersons(initialPersons)
     })
   }, [])
+
   console.log('render', persons.length, 'persons')
 
   const handleNameChange = (event) => {
-
     setNewName(event.target.value)
   }
+
   const handleNumberChange = (event) => {
     setNewNumber(event.target.value)
   }
 
   const handleFilterChange = (event) => {
     setNewFilter(event.target.value)
-
   }
 
-  const addName = (event) =>{
+  const addName = (event) => {
     event.preventDefault()
-    if (persons.some(person => person.name === newName)) {
+    const existingPerson = persons.find(person => person.name === newName)
+    if (existingPerson) {
       alert(`${newName} is already added to phonebook`)
       return
     }
+
     const nameObject = {
       name: newName,
       number: newNumber,
     }
-    setPersons(persons.concat(nameObject))
-    setNewName('')
-    setNewNumber('')
-    
+
+    addPersons(nameObject)
+      .then(returnedPerson => {
+        setPersons(persons.concat(returnedPerson))
+        setNewName('')
+        setNewNumber('')
+      })
+      .catch(error => {
+        console.error('Error adding person:', error)
+      })
   }
+
   const personsToShow = newFilter
-  ? persons.filter(person => 
-      person.name.toLowerCase().includes(newFilter.toLowerCase())
-    )
-  : persons
-  
+    ? persons.filter(person =>
+        person.name.toLowerCase().includes(newFilter.toLowerCase())
+      )
+    : persons
+
   return (
     <div>
       <h2>Phonebook</h2>
-      <div>filter shown with <input value={newFilter} onChange={handleFilterChange}/></div>
-      <PersonForm 
-        addName={addName} 
-        newName={newName} 
-        handleNameChange={handleNameChange} 
-        newNumber={newNumber} 
-        handleNumberChange={handleNumberChange} 
+      <div>filter shown with <input value={newFilter} onChange={handleFilterChange} /></div>
+      <PersonForm
+        addName={addName}
+        newName={newName}
+        handleNameChange={handleNameChange}
+        newNumber={newNumber}
+        handleNumberChange={handleNumberChange}
       />
       <h2>Numbers</h2>
       <Persons personsToShow={personsToShow} />
