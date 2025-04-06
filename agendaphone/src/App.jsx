@@ -12,6 +12,7 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
   const [successMessage, setSuccessMessage] = useState(null)
+  const [messageType, setMessageType] = useState('success');
 
   useEffect(() => {
     getPersons().then((initialPersons) => {
@@ -49,15 +50,19 @@ const App = () => {
         setPersons(persons.map(person => person.id !== existingPerson.id ? person : updatedPerson));
         setNewName('');
         setNewNumber('');
-        setSuccessMessage(
-          `The new phone number for ${newName} has been changed to ${newNumber}`
-        )
+        setSuccessMessage(`Added ${returnedPerson.name}`);
+        setMessageType('success');
         setTimeout(() => {
           setSuccessMessage(null)
         }, 5000)
         })
         .catch(error => {
-        console.error('Error updating person:', error);
+          setSuccessMessage(`Information of ${existingPerson.name} has already been removed from server`);
+          setMessageType('error');
+          setTimeout(() => {
+            setSuccessMessage(null);
+          }, 5000);
+          setPersons(persons.filter(p => p.id !== existingPerson.id));
         });
       }
       
@@ -102,7 +107,7 @@ const App = () => {
     return (
       <div>
       <h2>Phonebook</h2>
-      <Notification message={successMessage}></Notification>
+      <Notification message={successMessage} type={messageType} />
       <div>filter shown with <input value={newFilter} onChange={handleFilterChange} /></div>
       <h2>Add new</h2>
       <PersonForm
