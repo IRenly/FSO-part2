@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
+import Notification from './components/Notification'
+
 import { getPersons, addPersons, deletePerson, updatePerson } from './services/persons'
 
 const App = () => {
@@ -9,6 +11,7 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
+  const [successMessage, setSuccessMessage] = useState(null)
 
   useEffect(() => {
     getPersons().then((initialPersons) => {
@@ -46,37 +49,49 @@ const App = () => {
         setPersons(persons.map(person => person.id !== existingPerson.id ? person : updatedPerson));
         setNewName('');
         setNewNumber('');
+        setSuccessMessage(
+          `The new phone number for ${newName} has been changed to ${newNumber}`
+        )
+        setTimeout(() => {
+          setSuccessMessage(null)
+        }, 5000)
         })
         .catch(error => {
         console.error('Error updating person:', error);
         });
       }
+      
       return;
-    }
-
-    const handleDeletePerson = (id) => {
-      const personToDelete = persons.find(person => person.id === id);
-      if (window.confirm(`Delete ${personToDelete.name}?`)) {
-        deletePerson(id)
-          .then(() => {
-            setPersons(persons.filter(person => person.id !== id));
-          })
-          .catch(error => {
-            console.error('Error deleting person:', error);
-          });
-      }
     };
+
+
 
     addPersons(nameObject)
       .then(returnedPerson => {
-        setPersons(persons.concat(returnedPerson))
-        setNewName('')
-        setNewNumber('')
+        setPersons(persons.concat(returnedPerson));
+        setNewName('');
+        setNewNumber('');
+        setSuccessMessage(`Added ${returnedPerson.name}`);
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 5000);
       })
       .catch(error => {
-        console.error('Error adding person:', error)
-      })
+        console.error('Error adding person:', error);
+      });
   }
+  const handleDeletePerson = (id) => {
+    const personToDelete = persons.find(person => person.id === id);
+    if (window.confirm(`Delete ${personToDelete.name}?`)) {
+      deletePerson(id)
+        .then(() => {
+          setPersons(persons.filter(person => person.id !== id));
+        })
+        .catch(error => {
+          console.error('Error deleting person:', error);
+        });
+    }
+  };
 
   const personsToShow = newFilter
     ? persons.filter(person =>
@@ -87,7 +102,9 @@ const App = () => {
     return (
       <div>
       <h2>Phonebook</h2>
+      <Notification message={successMessage}></Notification>
       <div>filter shown with <input value={newFilter} onChange={handleFilterChange} /></div>
+      <h2>Add new</h2>
       <PersonForm
         addName={addName}
         newName={newName}
